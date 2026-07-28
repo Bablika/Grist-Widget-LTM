@@ -154,8 +154,12 @@ function getCollectiviteLogo(value) {
   if (!value) return '';
 
   const normalized = String(value).trim().toUpperCase();
-  if (normalized === 'LTM' || normalized === 'CIAS') {
-    return './images/logo-ltm.png';
+  if (normalized === 'LTM') {
+    return './images/LTM.png';
+  }
+
+  if (normalized === 'CIAS') {
+    return './images/CIAS.png';
   }
 
   if (normalized === 'VILLE') {
