@@ -1,7 +1,7 @@
 
 :root {
   --background-color: #f4f7fa;
-  --background-element: white;
+  --background-element: rgb(0, 0, 0);
   --text-color: black;
 }
 
