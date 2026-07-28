@@ -95,7 +95,7 @@ async function saveOptions() {
 }
 
 // Subscribe to grist data
-grist.ready({requiredAccess: 'full', columns: [{name: 'Messages', type: 'Text'}, {name: 'User', type: 'Text', optional: true}, {name: 'Collectivité', type: 'Text'}],
+grist.ready({requiredAccess: 'full', columns: [{name: 'Messages', type: 'Text'}, {name: 'User', type: 'Text', optional: true}, {name: 'Collectivité', type: 'Choice'}],
   // Register configuration handler to show configuration panel.
   onEditOptions() {
     showPanel('configuration');
