@@ -15,6 +15,7 @@ let quill = {};
 let id;
 let column;
 let user;
+let collectivite = '';
 let lastContent;
 let culture = 'en-US';
 localize();
@@ -94,7 +95,7 @@ async function saveOptions() {
 }
 
 // Subscribe to grist data
-grist.ready({requiredAccess: 'full', columns: [{name: 'Messages', type: 'Text'}, {name: 'User', type: 'Text', optional: true}],
+grist.ready({requiredAccess: 'full', columns: [{name: 'Messages', type: 'Text'}, {name: 'User', type: 'Text', optional: true}, {name: 'Collectivité', type: 'Text'}],
   // Register configuration handler to show configuration panel.
   onEditOptions() {
     showPanel('configuration');
@@ -104,12 +105,13 @@ grist.ready({requiredAccess: 'full', columns: [{name: 'Messages', type: 'Text'},
 grist.onRecord(function (record, mappings) {
   quill.enable();
   showPanel('chat');
+  const mapped = grist.mapColumnNames(record);
+  collectivite = mapped?.['Collectivité'] || '';
   // If this is a new record, or mapping is diffrent.
   if (id !== record.id || mappings?.Messages !== column) {
     id = record.id;
     column = mappings?.Messages;
     user = mappings?.User
-    const mapped = grist.mapColumnNames(record);
     if (!mapped) {
       // Log but don't bother user - maybe we are just testing.
       console.error('Please map columns');
@@ -132,6 +134,7 @@ grist.onNewRecord(function () {
   document.getElementById('msg-container').innerHTML = '';
   showPanel('');
   id = null;
+  collectivite = '';
   lastContent = [];
   quill.setContents(null);
   quill.disable();
@@ -147,14 +150,34 @@ grist.onOptions((customOptions, _) => {
 });
 
 
+function getCollectiviteLogo(value) {
+  if (!value) return '';
+
+  const normalized = String(value).trim().toUpperCase();
+  if (normalized === 'LTM' || normalized === 'CIAS') {
+    return 'https://www.lamballe-terre-mer.bzh/app/uploads/2025/04/logo_web_noir_v-1024x962.png';
+  }
+
+  if (normalized === 'VILLE') {
+    return 'https://upload.wikimedia.org/wikipedia/commons/f/fb/Logo-lamballe-armor.png';
+  }
+
+  return '';
+}
+
 function DisplayMessage(author, date, message) {
   const card = document.createElement('div');
   card.className = 'card';
   if (!author || author.trim().length === 0) author = '&nbsp' //force blank space to ensure the layout
 
+  const logoUrl = getCollectiviteLogo(collectivite);
+  const logoHtml = logoUrl
+    ? `<img src="${logoUrl}" alt="logo collectivité" style="height:16px;width:auto;vertical-align:middle;margin-left:6px;" />`
+    : '';
+
   card.innerHTML = `
       <div class="card-header">
-        <span class="author">${author}</span>
+        <span class="author">${author}${logoHtml}</span>
         <span class="date">${date.toLocaleString(culture)}</span>
       </div>
       <div class="card-content"><div class="card-message">${message}</div></div>

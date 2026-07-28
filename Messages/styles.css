@@ -92,7 +92,7 @@ body {
   
   .add-msg {
     align-self: flex-end; /* Aligne le bouton à droite */
-    background-color: #16B378;
+    background-color: #000000;
     color: var(--background-element);
     border: none;
     padding: 10px 20px;
