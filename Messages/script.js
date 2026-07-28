@@ -172,7 +172,7 @@ function DisplayMessage(author, date, message) {
 
   const logoUrl = getCollectiviteLogo(collectivite);
   const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" alt="logo collectivité" style="height:16px;width:auto;vertical-align:middle;margin-left:6px;" />`
+    ? `<img src="${logoUrl}" alt="logo collectivité" style="height:24px;width:auto;vertical-align:middle;margin-left:6px;" />`
     : '';
 
   card.innerHTML = `
