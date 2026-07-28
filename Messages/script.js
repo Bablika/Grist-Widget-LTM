@@ -117,7 +117,7 @@ grist.onRecord(function (record, mappings) {
       console.error('Please map columns');
     } else { //if (lastContent !== mapped.Content) 
       // We will remember last thing sent, to not remove progress.
-      msg = mapped.Messages?.replace('|-¤-|','');
+      const msg = mapped.Messages?.replace('|-¤-|','');
       if (!msg || msg.trim().length === 0) {
         lastContent = [];
       } else {
@@ -169,25 +169,147 @@ function getCollectiviteLogo(value) {
   return '';
 }
 
+function isSafeUrl(value) {
+  if (!value) return false;
+
+  const trimmed = String(value).trim();
+  if (trimmed.startsWith('data:image/')) return true;
+
+  try {
+    const url = new URL(trimmed, window.location.href);
+    return ['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol) || trimmed.startsWith('/');
+  } catch (error) {
+    return false;
+  }
+}
+
+function sanitizeHtml(value) {
+  const container = document.createElement('div');
+  container.innerHTML = String(value || '');
+
+  const allowedTags = new Set(['a', 'b', 'blockquote', 'br', 'code', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'img', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'sub', 'sup', 'u', 'ul']);
+  const allowedAttributes = new Set(['href', 'src', 'alt', 'title', 'target', 'rel']);
+  const allowedStyles = new Set(['color', 'background-color', 'font-size', 'font-family', 'font-weight', 'font-style', 'text-decoration', 'text-align', 'vertical-align']);
+
+  const sanitizeNode = (node) => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tagName = node.tagName.toLowerCase();
+      if (!allowedTags.has(tagName)) {
+        node.replaceWith(...node.childNodes);
+        return;
+      }
+
+      if (tagName === 'a') {
+        const href = node.getAttribute('href');
+        if (!isSafeUrl(href)) {
+          node.removeAttribute('href');
+        }
+      }
+
+      if (tagName === 'img') {
+        const src = node.getAttribute('src');
+        if (!isSafeUrl(src)) {
+          node.removeAttribute('src');
+        }
+      }
+
+      for (const attribute of [...node.attributes]) {
+        const name = attribute.name.toLowerCase();
+        if (!allowedAttributes.has(name)) {
+          node.removeAttribute(attribute.name);
+          continue;
+        }
+
+        if (name === 'style') {
+          const styleEntries = attribute.value
+            .split(';')
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+            .map((entry) => entry.split(':'));
+
+          const safeStyleParts = styleEntries
+            .filter(([property]) => allowedStyles.has(property.trim().toLowerCase()))
+            .map(([property, value]) => `${property.trim()}: ${value.trim()}`);
+
+          if (safeStyleParts.length > 0) {
+            node.setAttribute('style', safeStyleParts.join('; '));
+          } else {
+            node.removeAttribute('style');
+          }
+          continue;
+        }
+
+        if (name === 'href' || name === 'src') {
+          if (!isSafeUrl(attribute.value)) {
+            node.removeAttribute(attribute.name);
+          }
+        }
+      }
+
+      if (node.hasAttribute('href') && !node.hasAttribute('rel')) {
+        node.setAttribute('rel', 'noopener noreferrer');
+      }
+
+      if (node.hasAttribute('href') && !node.hasAttribute('target')) {
+        node.setAttribute('target', '_blank');
+      }
+
+      for (const child of [...node.childNodes]) {
+        sanitizeNode(child);
+      }
+    }
+  };
+
+  for (const child of [...container.childNodes]) {
+    sanitizeNode(child);
+  }
+
+  return container.innerHTML;
+}
+
 function DisplayMessage(author, date, message) {
   const card = document.createElement('div');
   card.className = 'card';
-  if (!author || author.trim().length === 0) author = '&nbsp' //force blank space to ensure the layout
+  const normalizedAuthor = (!author || author.trim().length === 0) ? '' : author;
+
+  const header = document.createElement('div');
+  header.className = 'card-header';
+
+  const authorWrapper = document.createElement('span');
+  authorWrapper.className = 'author';
+  authorWrapper.textContent = normalizedAuthor;
 
   const logoUrl = getCollectiviteLogo(collectivite);
-  const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" alt="logo collectivité" style="height:24px;width:auto;vertical-align:middle;margin-left:6px;" />`
-    : '';
+  if (logoUrl) {
+    const logo = document.createElement('img');
+    logo.src = logoUrl;
+    logo.alt = 'logo collectivité';
+    logo.style.height = '24px';
+    logo.style.width = 'auto';
+    logo.style.verticalAlign = 'middle';
+    logo.style.marginLeft = '6px';
+    authorWrapper.appendChild(logo);
+  }
 
-  card.innerHTML = `
-      <div class="card-header">
-        <span class="author">${author}${logoHtml}</span>
-        <span class="date">${date.toLocaleString(culture)}</span>
-      </div>
-      <div class="card-content"><div class="card-message">${message}</div></div>
-    `;
-  
-    document.getElementById('msg-container').append(card);
+  const dateWrapper = document.createElement('span');
+  dateWrapper.className = 'date';
+  dateWrapper.textContent = date.toLocaleString(culture);
+
+  header.appendChild(authorWrapper);
+  header.appendChild(dateWrapper);
+
+  const content = document.createElement('div');
+  content.className = 'card-content';
+
+  const messageWrapper = document.createElement('div');
+  messageWrapper.className = 'card-message';
+  messageWrapper.innerHTML = sanitizeHtml(message);
+
+  content.appendChild(messageWrapper);
+  card.appendChild(header);
+  card.appendChild(content);
+
+  document.getElementById('msg-container').appendChild(card);
 }
 
 function LoadMesssages(messages) {
@@ -222,7 +344,7 @@ function AddNewMessage() {
     if (!message || message.trim().length === 0 || message == '<p></p>') return;
 
     //update table to refresh user
-    if (!user || user.trim().length !== 0) {
+    if (user && user.trim().length > 0) {
       table.update({id, fields: {[column]: JSON.stringify(lastContent)+'|-¤-|'}}).then((result)=> {
         grist.fetchSelectedRecord(id).then((row)=> {
           author = row[user];
