@@ -9,7 +9,7 @@
   :root {
     --background-color: #262633;
     --background-element: #32323F;
-    --text-color: white;
+    --text-color: rgb(0, 0, 0);
   }
 }
 
@@ -37,11 +37,12 @@ body {
   }
   
   .card-header {
-    background-color: #000000;
+    background-color: #ffffff;
     color: var(--background-element);
     padding: 10px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+    border: 1px solid #000000;
   }
   
   .card-content {
