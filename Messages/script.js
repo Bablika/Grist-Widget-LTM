@@ -155,11 +155,11 @@ function getCollectiviteLogo(value) {
 
   const normalized = String(value).trim().toUpperCase();
   if (normalized === 'LTM' || normalized === 'CIAS') {
-    return 'https://www.lamballe-terre-mer.bzh/app/uploads/2025/04/logo_web_noir_v-1024x962.png';
+    return './images/logo-ltm.png';
   }
 
   if (normalized === 'VILLE') {
-    return 'https://upload.wikimedia.org/wikipedia/commons/f/fb/Logo-lamballe-armor.png';
+    return './images/Logo-lamballe-armor.png';
   }
 
   return '';

@@ -1,15 +1,15 @@
 
 :root {
   --background-color: #f4f7fa;
-  --background-element: rgb(0, 0, 0);
+  --background-element: rgb(250, 250, 250);
   --text-color: black;
 }
 
 @media (prefers-color-scheme: dark) { 
   :root {
     --background-color: #262633;
-    --background-element: #000000;
-    --text-color: rgb(0, 0, 0);
+    --background-element: #32323F;
+    --text-color: rgb(255, 255, 255);
   }
 }
 
@@ -37,12 +37,11 @@ body {
   }
   
   .card-header {
-    background-color: #ffffff;
+    background-color: #000000;
     color: var(--background-element);
     padding: 10px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    border: 1px solid #000000;
   }
   
   .card-content {
