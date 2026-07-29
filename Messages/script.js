@@ -17,32 +17,22 @@ let column;
 let user;
 let collectivite = '';
 let lastContent;
-let culture = 'en-US';
-localize();
-const table = grist.getTable();
+document.documentElement.lang = 'fr';
 
-function localize() {
-  var urlParams = new URLSearchParams(window.location.search);  
-  if (urlParams.has('culture')) culture = urlParams.get('culture');
+document.addEventListener('DOMContentLoaded', () => {
+  const title = document.getElementById('new-title');
+  const send = document.getElementById('send');
 
-  var lang = culture.split('-')[0];
-  switch (lang) {
-    case 'fr':
-      document.getElementById('new-title').innerHTML = 'Nouveau message';
-      document.getElementById('send').innerHTML = 'Envoyer';
-      break;
-
-    case 'es':
-      document.getElementById('new-title').innerHTML = 'Nuevo mensaje';
-      document.getElementById('send').innerHTML = 'Enviar';
-      break;
-
-    default:
-      document.getElementById('new-title').innerHTML = 'New message';
-      document.getElementById('send').innerHTML = 'Send';
+  if (title) {
+    title.textContent = 'Nouveau message';
   }
 
-}
+  if (send) {
+    send.textContent = 'Envoyer';
+  }
+});
+
+const table = grist.getTable();
 
 function Datereviver(key, value) {
   if (typeof value === 'string') {
@@ -293,7 +283,7 @@ function DisplayMessage(author, date, message) {
 
   const dateWrapper = document.createElement('span');
   dateWrapper.className = 'date';
-  dateWrapper.textContent = date.toLocaleString(culture);
+  dateWrapper.textContent = date.toLocaleString('fr-FR');
 
   header.appendChild(authorWrapper);
   header.appendChild(dateWrapper);
@@ -363,7 +353,6 @@ function AddNewMessage() {
     }    
   }  
 }
-
 
 
 
